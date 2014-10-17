@@ -48,7 +48,7 @@ my $p_value_field = 2;
 my $sig_level     = 0.05;
 my $go_terms_file;
 my $r_binary   = 'R';
-my $has_header = 1;
+my $has_header = 0;
 my ( $debug, $help, $man );
 
 # Get and check command line options
