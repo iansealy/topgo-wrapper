@@ -69,8 +69,12 @@ sub read_p_values {
         my $p_value = $fields[ $p_value_field - 1 ];
         next if $p_value eq q{-} || $p_value eq 'NA';    # Ignore filtered genes
         foreach my $gene_id ( split /,/xms, $gene_ids ) {
-            confess "Multiple p values for $gene_id"
-              if exists $p_value_for{$gene_id};
+            if ( exists $p_value_for{$gene_id}
+                && $p_value_for{$gene_id} < $p_value )
+            {
+                # Keep lowest p value if gene already seen
+                $p_value = $p_value_for{$gene_id};
+            }
             $p_value_for{$gene_id} = $p_value;
         }
     }
