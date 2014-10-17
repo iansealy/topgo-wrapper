@@ -63,13 +63,16 @@ sub read_p_values {
     }
     while ( my $line = <$fh> ) {
         chomp $line;
-        my @fields  = split /\t/xms, $line;
-        my $gene_id = $fields[ $gene_field - 1 ];
+        my @fields = split /\t/xms, $line;
+        my $gene_ids = $fields[ $gene_field - 1 ];
+        next if $gene_ids eq q{-};
         my $p_value = $fields[ $p_value_field - 1 ];
         next if $p_value eq q{-} || $p_value eq 'NA';    # Ignore filtered genes
-        confess "Multiple p values for $gene_id"
-          if exists $p_value_for{$gene_id};
-        $p_value_for{$gene_id} = $p_value;
+        foreach my $gene_id ( split /,/xms, $gene_ids ) {
+            confess "Multiple p values for $gene_id"
+              if exists $p_value_for{$gene_id};
+            $p_value_for{$gene_id} = $p_value;
+        }
     }
     close $fh;
 
