@@ -76,8 +76,7 @@ foreach my $domain ( keys %DOMAIN ) {
         ( sprintf '%s_all.gene2go.txt', $DOMAIN{$domain} ) );
     TopGO::write_mapping_file( [ keys %{$p_value_for} ],
         $go_terms_for, $DOMAIN{$domain}, $gene_to_go_mapping_file );
-    my $output_prefix =
-      File::Spec->catfile( $dir, ( sprintf '%s_all', $domain ) );
+    my $output_prefix = File::Spec->catfile( $dir, $domain );
     TopGO::run_topgo(
         {
             r_binary       => $r_binary,

@@ -214,13 +214,12 @@ sub run_topgo {
     confess 'No output prefix specified' if !defined $arg_ref->{output_prefix};
     confess 'No significance level specified' if !defined $arg_ref->{sig_level};
 
-    my $output_file = $arg_ref->{output_prefix} . '.tsv';
     my $stdout_file = $arg_ref->{output_prefix} . '.o';
     my $stderr_file = $arg_ref->{output_prefix} . '.e';
 
     my $cmd = join q{ }, $arg_ref->{r_binary}, '--slave', '--args',
       $arg_ref->{gene_list_file}, $arg_ref->{mapping_file}, $arg_ref->{domain},
-      $output_file, $arg_ref->{output_prefix}, $arg_ref->{sig_level}, '<',
+      $arg_ref->{output_prefix},  $arg_ref->{sig_level},    '<',
       $arg_ref->{topgo_script};
     $cmd .= ' 1>' . $stdout_file;
     $cmd .= ' 2>' . $stderr_file;

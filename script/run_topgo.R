@@ -4,9 +4,8 @@ Args           <- commandArgs()
 geneListFile   <- Args[4]
 mappingFile    <- Args[5]
 ontology       <- Args[6]
-outputFile     <- Args[7]
-graphPdfPrefix <- Args[8]
-sigLevel       <- as.numeric( Args[9] )
+outputPrefix   <- Args[7]
+sigLevel       <- as.numeric( Args[8] )
 
 # Gene selection function
 topDiffGenes <- function(allScore) {
@@ -32,6 +31,10 @@ nodecount <- length(score(resultKS.elim))
 allRes <- GenTable(GOdata, elimKS=resultKS.elim, topNodes=nodecount)
 
 # Write results
-write.table( allRes, file=outputFile, quote=FALSE, row.names=FALSE, sep="\t" )
-printGraph(GOdata, resultKS.elim, firstSigNodes=5, fn.prefix=graphPdfPrefix,
-    useInfo="all", pdfSW=TRUE)
+write.table( allRes, file=paste0(outputPrefix, ".all.tsv"), quote=FALSE,
+    row.names=FALSE, sep="\t" )
+
+# Write PDF
+pdf(paste0(outputPrefix, ".pdf"))
+showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes=5, useInfo ="all")
+dev.off()
