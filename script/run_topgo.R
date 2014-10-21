@@ -40,6 +40,6 @@ write.table( sigRes, file=paste0(outputPrefix, ".sig.tsv"), quote=FALSE,
 # Write PDF
 pdf(paste0(outputPrefix, ".pdf"))
 showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes=nrow(sigRes),
-    useInfo ="all")
-showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes=5, useInfo ="all")
+    useInfo="all")
+showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes=5, useInfo="all")
 dev.off()
