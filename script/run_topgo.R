@@ -22,6 +22,7 @@ names(genes) <- geneList[,1]
 geneID2GO <- readMappings(file = mappingFile)
 
 # Make topGOdata object
+# nodeSize=10 : prune GO hierarchy of terms associated with < 10 genes
 GOdata <- new("topGOdata", ontology=ontology, allGenes=genes,
     geneSel=topDiffGenes, annot=annFUN.gene2GO, gene2GO=geneID2GO, nodeSize=10)
 
