@@ -29,6 +29,9 @@ GOdata <- new("topGOdata", ontology=ontology, allGenes=genes,
 resultKS.elim <- runTest(GOdata, algorithm="elim", statistic="ks")
 nodecount <- length(score(resultKS.elim))
 allRes <- GenTable(GOdata, elimKS=resultKS.elim, topNodes=nodecount)
+# Horrible way to get all the genes associated with each term
+allRes$Genes <- sapply(allRes$GO.ID,
+    function(x) gsub('[c()" \n]', '', genesInTerm(GOdata, x)))
 sigRes <- allRes[allRes$elimKS < sigLevel,]
 
 # Write results
