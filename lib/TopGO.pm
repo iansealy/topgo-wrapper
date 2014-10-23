@@ -228,4 +228,65 @@ sub run_topgo {
     return;
 }
 
+=func annotate_with_genes
+
+  Usage       : TopGO::annotate_with_genes( {
+                    input_file  => 'all.tsv',
+                    output_file => 'all.genes.tsv',
+                    p_values    => $p_values_for,
+                } );
+  Purpose     : Add gene annotation to topGO results
+  Returns     : undef
+  Parameters  : Hashref {
+                    input_file  => String (the input file),
+                    output_file => String (the output file),
+                    p_values    => Hashref (of p values keyed by gene ID),
+                }
+  Throws      : If input file is missing
+                If output file is missing
+                If p values are missing
+  Comments    : None
+
+=cut
+
+sub annotate_with_genes {
+    my ($arg_ref) = @_;
+
+    confess 'No input file specified'  if !defined $arg_ref->{input_file};
+    confess 'No output file specified' if !defined $arg_ref->{output_file};
+    confess 'No p values specified'    if !defined $arg_ref->{p_values};
+
+    my $p_values_for = $arg_ref->{p_values};
+
+    open my $fh_in,  '<', $arg_ref->{input_file};
+    open my $fh_out, '>', $arg_ref->{output_file};
+
+    # Get input header
+    my $header = <$fh_in>;
+    my @header_fields = split /\t/xms, $header;
+    pop @header_fields;
+
+    # Write output header
+    push @header_fields, 'Gene', 'p value';
+    print {$fh_out} ( join "\t", @header_fields ), "\n";
+
+    # Rewrite input so GO terms are repeated for each gene they are annotatd to
+    while ( my $line = <$fh_in> ) {
+        chomp $line;
+        my @fields = split /\t/xms, $line;
+        my @genes  = split /,/xms,  pop @fields;
+        foreach my $gene ( sort { $p_values_for->{$a} <=> $p_values_for->{$b} }
+            @genes )
+        {
+            print {$fh_out}
+              ( join "\t", @fields, $gene, $p_values_for->{$gene} ), "\n";
+        }
+    }
+
+    close $fh_in;
+    close $fh_out;
+
+    return;
+}
+
 1;
