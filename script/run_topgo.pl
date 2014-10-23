@@ -45,7 +45,9 @@ my $dir = q{.};
 my $input_file;
 my $gene_field    = 1;
 my $p_value_field = 2;
-my $sig_level     = 0.05;
+my $name_field;
+my $description_field;
+my $sig_level = 0.05;
 my $go_terms_file;
 my $r_binary   = 'R';
 my $has_header = 0;
@@ -58,8 +60,10 @@ get_and_check_options();
 make_path($dir);
 
 # Get p values for every Ensembl gene in the gene universe
-my $p_value_for =
-  TopGO::read_p_values( $input_file, $has_header, $gene_field, $p_value_field );
+my ( $p_value_for, $name_for, $description_for ) = TopGO::read_gene_info(
+    $input_file,    $has_header, $gene_field,
+    $p_value_field, $name_field, $description_field
+);
 
 # Get GO terms for every Ensembl gene
 my $go_terms_for = TopGO::read_go_terms($go_terms_file);
@@ -94,7 +98,9 @@ foreach my $domain ( keys %DOMAIN ) {
                 input_file => ( join q{.}, $output_prefix, $level, 'tsv' ),
                 output_file =>
                   ( join q{.}, $output_prefix, $level, 'genes', 'tsv' ),
-                p_values => $p_value_for,
+                p_values     => $p_value_for,
+                names        => $name_for,
+                descriptions => $description_for,
             }
         );
     }
@@ -105,17 +111,19 @@ sub get_and_check_options {
 
     # Get options
     GetOptions(
-        'dir=s'           => \$dir,
-        'input_file=s'    => \$input_file,
-        'gene_field=i'    => \$gene_field,
-        'p_value_field=i' => \$p_value_field,
-        'sig_level=f'     => \$sig_level,
-        'go_terms_file=s' => \$go_terms_file,
-        'r_binary=s'      => \$r_binary,
-        'header'          => \$has_header,
-        'debug'           => \$debug,
-        'help'            => \$help,
-        'man'             => \$man,
+        'dir=s'               => \$dir,
+        'input_file=s'        => \$input_file,
+        'gene_field=i'        => \$gene_field,
+        'p_value_field=i'     => \$p_value_field,
+        'name_field=i'        => \$name_field,
+        'description_field=i' => \$description_field,
+        'sig_level=f'         => \$sig_level,
+        'go_terms_file=s'     => \$go_terms_file,
+        'r_binary=s'          => \$r_binary,
+        'header'              => \$has_header,
+        'debug'               => \$debug,
+        'help'                => \$help,
+        'man'                 => \$man,
     ) or pod2usage(2);
 
     # Documentation
@@ -143,6 +151,8 @@ sub get_and_check_options {
         [--input_file file]
         [--gene_field int]
         [--p_value_field int]
+        [--name_field int]
+        [--description_field int]
         [--sig_level float]
         [--go_terms_file file]
         [--r_binary file]
@@ -170,6 +180,14 @@ The field that specifies the Ensembl gene ID in the input file.
 =item B<--p_value_field INT>
 
 The field that specifies the p value in the input file.
+
+=item B<--name_field INT>
+
+The field that specifies the gene's name in the input file.
+
+=item B<--description_field INT>
+
+The field that specifies the gene's description in the input file.
 
 =item B<--sig_level FLOAT>
 
