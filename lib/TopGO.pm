@@ -317,4 +317,40 @@ sub annotate_with_genes {
     return;
 }
 
+=func filter_by_significance
+
+  Usage       : filter_by_significance($input_file, $output_file, $sig_level);
+  Purpose     : Filter file by significance level
+  Returns     : undef
+  Parameters  : String (the input filename)
+                String (the output filename)
+                Float (the significance level)
+  Throws      : No exceptions
+  Comments    : None
+
+=cut
+
+sub filter_by_significance {
+    my ( $input_file, $output_file, $sig_level ) = @_;
+
+    open my $fh_in,  '<', $input_file;
+    open my $fh_out, '>', $output_file;
+
+    # Write header
+    my $header = <$fh_in>;
+    print {$fh_out} $header;
+
+    # Write significant lines
+    while ( my $line = <$fh_in> ) {
+        my @fields = split /\t/xms, $line;
+        next if $fields[5] >= $sig_level;
+        print {$fh_out} $line;
+    }
+
+    close $fh_in;
+    close $fh_out;
+
+    return;
+}
+
 1;

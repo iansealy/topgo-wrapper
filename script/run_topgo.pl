@@ -92,18 +92,19 @@ foreach my $domain ( keys %DOMAIN ) {
             sig_level      => $sig_level,
         }
     );
-    foreach my $level ( 'all', 'sig' ) {
-        TopGO::annotate_with_genes(
-            {
-                input_file => ( join q{.}, $output_prefix, $level, 'tsv' ),
-                output_file =>
-                  ( join q{.}, $output_prefix, $level, 'genes', 'tsv' ),
-                p_values     => $p_value_for,
-                names        => $name_for,
-                descriptions => $description_for,
-            }
-        );
-    }
+    TopGO::annotate_with_genes(
+        {
+            input_file   => $output_prefix . '.all.tsv',
+            output_file  => $output_prefix . '.all.genes.tsv',
+            p_values     => $p_value_for,
+            names        => $name_for,
+            descriptions => $description_for,
+        }
+    );
+    TopGO::filter_by_significance( $output_prefix . '.all.tsv',
+        $output_prefix . '.sig.tsv', $sig_level );
+    TopGO::filter_by_significance( $output_prefix . '.all.genes.tsv',
+        $output_prefix . '.sig.genes.tsv', $sig_level );
 }
 
 # Get and check command line options

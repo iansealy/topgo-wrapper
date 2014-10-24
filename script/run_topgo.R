@@ -32,12 +32,9 @@ allRes <- GenTable(GOdata, elimKS=resultKS.elim, topNodes=nodecount)
 # Horrible way to get all the genes associated with each term
 allRes$Genes <- sapply(allRes$GO.ID,
     function(x) gsub('[c()" \n]', '', genesInTerm(GOdata, x)))
-sigRes <- allRes[allRes$elimKS < sigLevel,]
 
 # Write results
 write.table( allRes, file=paste0(outputPrefix, ".all.tsv"), quote=FALSE,
-    row.names=FALSE, sep="\t" )
-write.table( sigRes, file=paste0(outputPrefix, ".sig.tsv"), quote=FALSE,
     row.names=FALSE, sep="\t" )
 
 # Write PDF
