@@ -71,8 +71,37 @@ my ( $p_value_for, $fold_change_for, $name_for, $description_for ) =
 my $go_terms_for = TopGO::read_go_terms($go_terms_file);
 
 # Write gene list
-my $gene_list_file = File::Spec->catfile( $dir, 'gene_list.txt' );
-TopGO::write_gene_list( $p_value_for, $gene_list_file );
+my @sets = ('all');    # All genes
+my ( %gene_list_file, %dir );
+$gene_list_file{'all'} = File::Spec->catfile( $dir, 'gene_list.txt' );
+$dir{'all'} = $dir;
+TopGO::write_gene_list( $p_value_for, $gene_list_file{'all'} );
+
+# If fold changes are available, also run up and downregulated subsets
+if ($fold_change_field) {
+    push @sets, 'up', 'down';
+
+    $gene_list_file{'up'} = File::Spec->catfile( $dir, 'up', 'gene_list.txt' );
+    $gene_list_file{'down'} =
+      File::Spec->catfile( $dir, 'down', 'gene_list.txt' );
+
+    $dir{'up'}   = File::Spec->catdir( $dir, 'up' );
+    $dir{'down'} = File::Spec->catdir( $dir, 'down' );
+
+    make_path( $dir{'up'} );
+    make_path( $dir{'down'} );
+
+    my @up_genes =
+      grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} > 0 }
+      keys %{$fold_change_for};
+    my @down_genes =
+      grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} < 0 }
+      keys %{$fold_change_for};
+
+    TopGO::write_gene_list( $p_value_for, $gene_list_file{'up'}, \@up_genes );
+    TopGO::write_gene_list( $p_value_for, $gene_list_file{'down'},
+        \@down_genes );
+}
 
 # Write mapping file and run topGO for each domain
 my $topgo_script = File::Spec->catfile( dirname(__FILE__), 'run_topgo.R' );
@@ -82,32 +111,34 @@ foreach my $domain ( sort keys %DOMAIN ) {
         ( sprintf '%s_all.gene2go.txt', $DOMAIN{$domain} ) );
     TopGO::write_mapping_file( [ keys %{$p_value_for} ],
         $go_terms_for, $DOMAIN{$domain}, $gene_to_go_mapping_file );
-    my $output_prefix = File::Spec->catfile( $dir, $domain );
-    TopGO::run_topgo(
-        {
-            r_binary       => $r_binary,
-            topgo_script   => $topgo_script,
-            gene_list_file => $gene_list_file,
-            mapping_file   => $gene_to_go_mapping_file,
-            domain         => $domain,
-            output_prefix  => $output_prefix,
-            sig_level      => $sig_level,
-        }
-    );
-    TopGO::annotate_with_genes(
-        {
-            input_file   => $output_prefix . '.all.tsv',
-            output_file  => $output_prefix . '.all.genes.tsv',
-            p_values     => $p_value_for,
-            fold_changes => $fold_change_for,
-            names        => $name_for,
-            descriptions => $description_for,
-        }
-    );
-    TopGO::filter_by_significance( $output_prefix . '.all.tsv',
-        $output_prefix . '.sig.tsv', $sig_level );
-    TopGO::filter_by_significance( $output_prefix . '.all.genes.tsv',
-        $output_prefix . '.sig.genes.tsv', $sig_level );
+    foreach my $set (@sets) {
+        my $output_prefix = File::Spec->catfile( $dir{$set}, $domain );
+        TopGO::run_topgo(
+            {
+                r_binary       => $r_binary,
+                topgo_script   => $topgo_script,
+                gene_list_file => $gene_list_file{$set},
+                mapping_file   => $gene_to_go_mapping_file,
+                domain         => $domain,
+                output_prefix  => $output_prefix,
+                sig_level      => $sig_level,
+            }
+        );
+        TopGO::annotate_with_genes(
+            {
+                input_file   => $output_prefix . '.all.tsv',
+                output_file  => $output_prefix . '.all.genes.tsv',
+                p_values     => $p_value_for,
+                fold_changes => $fold_change_for,
+                names        => $name_for,
+                descriptions => $description_for,
+            }
+        );
+        TopGO::filter_by_significance( $output_prefix . '.all.tsv',
+            $output_prefix . '.sig.tsv', $sig_level );
+        TopGO::filter_by_significance( $output_prefix . '.all.genes.tsv',
+            $output_prefix . '.sig.genes.tsv', $sig_level );
+    }
 }
 
 # Get and check command line options
@@ -189,7 +220,7 @@ The field that specifies the p value in the input file.
 
 =item B<--fold_change_field INT>
 
-The field that specifies the gene's fold change in the input file.
+The field that specifies the gene's log fold change in the input file.
 
 =item B<--name_field INT>
 

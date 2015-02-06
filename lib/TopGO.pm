@@ -143,16 +143,23 @@ sub read_go_terms {
   Returns     : undef
   Parameters  : Hashref (of p values keyed by gene ID)
                 String (the output filename)
+                Arrayref (of gene IDs to keep)
   Throws      : No exceptions
   Comments    : None
 
 =cut
 
 sub write_gene_list {
-    my ( $p_value_for, $gene_list_file ) = @_;
+    my ( $p_value_for, $gene_list_file, $genes_to_keep ) = @_;
+
+    my %keep = %{$p_value_for};    # Default to keeping all genes
+    if ( defined $genes_to_keep ) {
+        %keep = map { $_ => 1 } @{$genes_to_keep};
+    }
 
     open my $fh, '>', $gene_list_file;
     foreach my $gene_id ( keys %{$p_value_for} ) {
+        next if !exists $keep{$gene_id};
         printf {$fh} "%s\t%f\n", $gene_id, $p_value_for->{$gene_id};
     }
     close $fh;
