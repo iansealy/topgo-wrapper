@@ -43,6 +43,7 @@ Readonly our %DOMAIN => (
 # Default options
 my $dir = q{.};
 my $input_file;
+my $detct_file;
 my $gene_field    = 1;
 my $p_value_field = 2;
 my $fold_change_field;
@@ -56,6 +57,53 @@ my ( $debug, $help, $man );
 
 # Get and check command line options
 get_and_check_options();
+
+# Automatically configure for DETCT output
+if ($detct_file) {
+
+    # Set defaults for DETCT all.tsv file
+    $input_file = $detct_file;
+    ## no critic (ProhibitMagicNumbers)
+    $gene_field        = 10;
+    $p_value_field     = 8;
+    $name_field        = 14;
+    $description_field = 15;
+    ## use critic
+    $has_header = 1;
+
+    # Get fold change field, Ensembl species and Ensembl version from input
+    my $species;
+    my %prefix2species = (
+        ''    => 'homo_sapiens',
+        'MUS' => 'mus_musculus',
+        'DAR' => 'danio_rerio',
+    );
+    open my $fh, '<', $detct_file;
+    my $header = <$fh>;
+    while ( my $line = <$fh> ) {
+        my @fields = split /\t/xms, $line;
+        if ( $fields[9] =~ m/\A ENS(|MUS|DAR)G\d/xms ) {
+            $species = $prefix2species{$1};
+            last;
+        }
+    }
+    close $fh;
+    my @fields = split /\t/xms, $header;
+    my ($ens) = $fields[9] =~ m/\A (e\d+) \s/xms;    # e.g. e76 Ensembl Gene ID
+    foreach my $i ( 1 .. scalar @fields ) {
+        if ( $fields[ $i - 1 ] =~ m/\A Log2 \s fold \s change/xms ) {
+            $fold_change_field = $i;
+            last;
+        }
+    }
+
+    if ( !$go_terms_file ) {
+        my $filename = sprintf '%s_%s_go.txt', $species, $ens;
+        $go_terms_file =
+          File::Spec->catfile( dirname(__FILE__), File::Spec->updir(), 'data',
+            $filename );
+    }
+}
 
 # Ensure working directory exists
 make_path($dir);
@@ -148,6 +196,7 @@ sub get_and_check_options {
     GetOptions(
         'dir=s'               => \$dir,
         'input_file=s'        => \$input_file,
+        'detct_file=s'        => \$detct_file,
         'gene_field=i'        => \$gene_field,
         'p_value_field=i'     => \$p_value_field,
         'fold_change_field=i' => \$fold_change_field,
@@ -170,10 +219,13 @@ sub get_and_check_options {
         pod2usage( -verbose => 2 );
     }
 
-    if ( !$input_file ) {
-        pod2usage("--input_file must be specified\n");
+    if ( !$input_file && !$detct_file ) {
+        pod2usage("--input_file or --detct_file must be specified\n");
     }
-    if ( !$go_terms_file ) {
+    if ( $input_file && $detct_file ) {
+        pod2usage("--input_file and --detct_file must not both be specified\n");
+    }
+    if ( !$go_terms_file && !$detct_file ) {
         pod2usage("--go_terms_file must be specified\n");
     }
 
@@ -185,6 +237,7 @@ sub get_and_check_options {
     run_topgo.pl
         [--dir directory]
         [--input_file file]
+        [--detct_file file]
         [--gene_field int]
         [--p_value_field int]
         [--fold_change_field int]
@@ -209,6 +262,11 @@ Working directory.
 =item B<--input_file FILE>
 
 The tab-separated file containing Ensembl gene IDs and associated p values.
+
+=item B<--detct_file FILE>
+
+The all.tsv file output by the DETCT pipeline. If this option is specified then
+any field options are ignored.
 
 =item B<--gene_field INT>
 

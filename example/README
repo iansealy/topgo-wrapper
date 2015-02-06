@@ -8,3 +8,8 @@ perl -Ilib script/run_topgo.pl \
 --name_field 14 --description_field 15 \
 --go_terms_file data/danio_rerio_e76_go.txt \
 --header
+
+Or (for DETCT output):
+
+perl -Ilib script/run_topgo.pl \
+--dir tmp --detct_file example/example.tsv
