@@ -76,7 +76,7 @@ TopGO::write_gene_list( $p_value_for, $gene_list_file );
 
 # Write mapping file and run topGO for each domain
 my $topgo_script = File::Spec->catfile( dirname(__FILE__), 'run_topgo.R' );
-foreach my $domain ( keys %DOMAIN ) {
+foreach my $domain ( sort keys %DOMAIN ) {
     my $gene_to_go_mapping_file =
       File::Spec->catfile( $dir,
         ( sprintf '%s_all.gene2go.txt', $DOMAIN{$domain} ) );
