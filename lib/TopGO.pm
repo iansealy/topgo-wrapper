@@ -158,7 +158,7 @@ sub write_gene_list {
     }
 
     open my $fh, '>', $gene_list_file;
-    foreach my $gene_id ( keys %{$p_value_for} ) {
+    foreach my $gene_id ( sort keys %{$p_value_for} ) {
         next if !exists $keep{$gene_id};
         printf {$fh} "%s\t%f\n", $gene_id, $p_value_for->{$gene_id};
     }

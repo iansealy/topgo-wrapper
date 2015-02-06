@@ -109,7 +109,7 @@ foreach my $domain ( sort keys %DOMAIN ) {
     my $gene_to_go_mapping_file =
       File::Spec->catfile( $dir,
         ( sprintf '%s_all.gene2go.txt', $DOMAIN{$domain} ) );
-    TopGO::write_mapping_file( [ keys %{$p_value_for} ],
+    TopGO::write_mapping_file( [ sort keys %{$p_value_for} ],
         $go_terms_for, $DOMAIN{$domain}, $gene_to_go_mapping_file );
     foreach my $set (@sets) {
         my $output_prefix = File::Spec->catfile( $dir{$set}, $domain );
