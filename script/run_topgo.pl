@@ -45,6 +45,7 @@ my $dir = q{.};
 my $input_file;
 my $gene_field    = 1;
 my $p_value_field = 2;
+my $fold_change_field;
 my $name_field;
 my $description_field;
 my $sig_level = 0.05;
@@ -59,11 +60,12 @@ get_and_check_options();
 # Ensure working directory exists
 make_path($dir);
 
-# Get p values for every Ensembl gene in the gene universe
-my ( $p_value_for, $name_for, $description_for ) = TopGO::read_gene_info(
-    $input_file,    $has_header, $gene_field,
-    $p_value_field, $name_field, $description_field
-);
+# Get p values and other data for every Ensembl gene in the gene universe
+my ( $p_value_for, $fold_change_for, $name_for, $description_for ) =
+  TopGO::read_gene_info(
+    $input_file,        $has_header, $gene_field, $p_value_field,
+    $fold_change_field, $name_field, $description_field
+  );
 
 # Get GO terms for every Ensembl gene
 my $go_terms_for = TopGO::read_go_terms($go_terms_file);
@@ -97,6 +99,7 @@ foreach my $domain ( keys %DOMAIN ) {
             input_file   => $output_prefix . '.all.tsv',
             output_file  => $output_prefix . '.all.genes.tsv',
             p_values     => $p_value_for,
+            fold_changes => $fold_change_for,
             names        => $name_for,
             descriptions => $description_for,
         }
@@ -116,6 +119,7 @@ sub get_and_check_options {
         'input_file=s'        => \$input_file,
         'gene_field=i'        => \$gene_field,
         'p_value_field=i'     => \$p_value_field,
+        'fold_change_field=i' => \$fold_change_field,
         'name_field=i'        => \$name_field,
         'description_field=i' => \$description_field,
         'sig_level=f'         => \$sig_level,
@@ -152,6 +156,7 @@ sub get_and_check_options {
         [--input_file file]
         [--gene_field int]
         [--p_value_field int]
+        [--fold_change_field int]
         [--name_field int]
         [--description_field int]
         [--sig_level float]
@@ -181,6 +186,10 @@ The field that specifies the Ensembl gene ID in the input file.
 =item B<--p_value_field INT>
 
 The field that specifies the p value in the input file.
+
+=item B<--fold_change_field INT>
+
+The field that specifies the gene's fold change in the input file.
 
 =item B<--name_field INT>
 

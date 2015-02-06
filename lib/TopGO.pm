@@ -38,19 +38,22 @@ our @EXPORT_OK = qw(
 
 =func read_gene_info
 
-  Usage       : ($p_value_for, $name_for, $description_for) = read_gene_info(
+  Usage       : ($p_value_for, $fold_change_for, $name_for, $description_for)
+                    = read_gene_info(
                     $input_file, $has_header, $gene_field, $p_value_field,
-                    $name_field, $description_field
+                    $fold_change_field, $name_field, $description_field
                 );
-  Purpose     : Read p values, name and description from a file and organise by
-                gene ID
+  Purpose     : Read p values, fold change, name and description from a file and
+                organise by gene ID
   Returns     : Hashref { String (gene ID) => Float (p value) }
+                Hashref { String (gene ID) => Float (fold change) }
                 Hashref { String (gene ID) => String (name) }
                 Hashref { String (gene ID) => String (description) }
   Parameters  : String (the input filename)
                 Boolean (whether input file has header)
                 Int (the gene field)
                 Int (the p value field)
+                Int (the fold change field) or undef
                 Int (the name field) or undef
                 Int (the description field) or undef
   Throws      : No exceptions
@@ -60,11 +63,12 @@ our @EXPORT_OK = qw(
 
 sub read_gene_info {
     my (
-        $input_file,    $has_header, $gene_field,
-        $p_value_field, $name_field, $description_field
+        $input_file,    $has_header,        $gene_field,
+        $p_value_field, $fold_change_field, $name_field,
+        $description_field
     ) = @_;
 
-    my ( %p_value_for, %name_for, %description_for );
+    my ( %p_value_for, %fold_change_for, %name_for, %description_for );
 
     open my $fh, '<', $input_file;
     if ($has_header) {
@@ -76,6 +80,8 @@ sub read_gene_info {
         my $gene_ids = $fields[ $gene_field - 1 ];
         next if $gene_ids eq q{-};
         my $p_value = $fields[ $p_value_field - 1 ];
+        my $fold_change =
+          $fold_change_field ? $fields[ $fold_change_field - 1 ] : q{};
         my $name = $name_field ? $fields[ $name_field - 1 ] : q{};
         my $description =
           $description_field ? $fields[ $description_field - 1 ] : q{};
@@ -89,13 +95,14 @@ sub read_gene_info {
                 $p_value = $p_value_for{$gene_id};
             }
             $p_value_for{$gene_id}     = $p_value;
+            $fold_change_for{$gene_id} = $fold_change;
             $name_for{$gene_id}        = $name;
             $description_for{$gene_id} = $description;
         }
     }
     close $fh;
 
-    return \%p_value_for, \%name_for, \%description_for;
+    return \%p_value_for, \%fold_change_for, \%name_for, \%description_for;
 }
 
 =func read_go_terms
@@ -249,8 +256,9 @@ sub run_topgo {
                     input_file   => 'all.tsv',
                     output_file  => 'all.genes.tsv',
                     p_values     => $p_value_for,
+                    fold_changes => $fold_change_for
                     names        => $name_for,
-                    descriptions => $descriptions_for,
+                    descriptions => $description_for,
                 } );
   Purpose     : Add gene annotation to topGO results
   Returns     : undef
@@ -258,12 +266,14 @@ sub run_topgo {
                     input_file   => String (the input file),
                     output_file  => String (the output file),
                     p_values     => Hashref (of p values keyed by gene ID),
+                    fold_changes => Hashref (of fold changes keyed by gene ID),
                     names        => Hashref (of names keyed by gene ID),
                     descriptions => Hashref (of descriptions keyed by gene ID),
                 }
   Throws      : If input file is missing
                 If output file is missing
                 If p values are missing
+                If fold changes are missing
                 If names are missing
                 If descriptions are missing
   Comments    : None
@@ -276,10 +286,12 @@ sub annotate_with_genes {
     confess 'No input file specified'   if !defined $arg_ref->{input_file};
     confess 'No output file specified'  if !defined $arg_ref->{output_file};
     confess 'No p values specified'     if !defined $arg_ref->{p_values};
+    confess 'No fold changes specified' if !defined $arg_ref->{fold_changes};
     confess 'No names specified'        if !defined $arg_ref->{names};
     confess 'No descriptions specified' if !defined $arg_ref->{descriptions};
 
     my $p_value_for     = $arg_ref->{p_values};
+    my $fold_change_for = $arg_ref->{fold_changes};
     my $name_for        = $arg_ref->{names};
     my $description_for = $arg_ref->{descriptions};
 
@@ -292,7 +304,8 @@ sub annotate_with_genes {
     pop @header_fields;
 
     # Write output header
-    push @header_fields, 'Gene', 'p value', 'Name', 'Description';
+    push @header_fields, 'Gene', 'p value', 'Fold change', 'Name',
+      'Description';
     print {$fh_out} ( join "\t", @header_fields ), "\n";
 
     # Rewrite input so GO terms are repeated for each gene they are annotatd to
@@ -305,6 +318,7 @@ sub annotate_with_genes {
         {
             print {$fh_out} (
                 join "\t", @fields, $gene, $p_value_for->{$gene},
+                $fold_change_for->{$gene},
                 $name_for->{$gene}, $description_for->{$gene}
               ),
               "\n";
