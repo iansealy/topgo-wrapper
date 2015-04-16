@@ -91,8 +91,9 @@ sub read_gene_info {
             if ( exists $p_value_for{$gene_id}
                 && $p_value_for{$gene_id} < $p_value )
             {
-                # Keep lowest p value if gene already seen
-                $p_value = $p_value_for{$gene_id};
+                # Keep lowest p value (and its fold change) if gene already seen
+                $p_value     = $p_value_for{$gene_id};
+                $fold_change = $fold_change_for{$gene_id};
             }
             $p_value_for{$gene_id}     = $p_value;
             $fold_change_for{$gene_id} = $fold_change;
