@@ -316,7 +316,7 @@ sub annotate_with_genes {
       'Description';
     print {$fh_out} ( join "\t", @header_fields ), "\n";
 
-    # Rewrite input so GO terms are repeated for each gene they are annotatd to
+    # Rewrite input so GO terms are repeated for each gene they are annotated to
     while ( my $line = <$fh_in> ) {
         chomp $line;
         my @fields = split /\t/xms, $line;
