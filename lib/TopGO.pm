@@ -257,7 +257,7 @@ sub run_topgo {
     WIFEXITED( system $cmd) or confess "Couldn't run $cmd ($OS_ERROR)";
 
     # Check for errors
-    if (-s $stderr_file) {
+    if ( -s $stderr_file ) {
         confess sprintf 'Error from topGO: %s', path($stderr_file)->slurp;
     }
 
