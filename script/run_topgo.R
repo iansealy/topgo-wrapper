@@ -1,4 +1,6 @@
-library(topGO)
+suppressPackageStartupMessages(library(topGO))
+suppressPackageStartupMessages(library(Rgraphviz))
+suppressPackageStartupMessages(library(grid))
 
 Args           <- commandArgs()
 geneListFile   <- Args[4]
