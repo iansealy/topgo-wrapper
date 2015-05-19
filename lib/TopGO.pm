@@ -20,6 +20,7 @@ use Try::Tiny;
 
 use English qw( -no_match_vars );
 use POSIX qw( WIFEXITED);
+use Path::Tiny;
 
 use base qw( Exporter );
 our @EXPORT_OK = qw(
@@ -254,6 +255,11 @@ sub run_topgo {
     $cmd .= ' 1>' . $stdout_file;
     $cmd .= ' 2>' . $stderr_file;
     WIFEXITED( system $cmd) or confess "Couldn't run $cmd ($OS_ERROR)";
+
+    # Check for errors
+    if (-s $stderr_file) {
+        confess sprintf 'Error from topGO: %s', path($stderr_file)->slurp;
+    }
 
     return;
 }
