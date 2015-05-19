@@ -29,6 +29,7 @@ use Bio::EnsEMBL::Registry;
 
     perl \
         -Ibranch-ensembl-74/ensembl/modules \
+        -Ibranch-ensembl-74/ensembl-compara/modules \
         get_ensembl_orthologue_go_terms.pl \
         > data/orthologues/danio_rerio_homo_sapiens_e74_go.txt
 
