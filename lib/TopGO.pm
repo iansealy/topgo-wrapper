@@ -371,7 +371,7 @@ sub filter_by_significance {
     # Write significant lines
     while ( my $line = <$fh_in> ) {
         my @fields = split /\t/xms, $line;
-        next if $fields[5] >= $sig_level;
+        next if $fields[5] !~ m/\A </xms && $fields[5] >= $sig_level;
         print {$fh_out} $line;
     }
 
