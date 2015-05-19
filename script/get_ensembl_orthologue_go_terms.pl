@@ -64,8 +64,8 @@ my $sa =
   Bio::EnsEMBL::Registry->get_adaptor( $ensembl_species, 'core', 'Slice' );
 my $goa = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Ontology', 'GOTerm' );
 my $gma =
-  Bio::EnsEMBL::Registry->get_adaptor( 'multi', 'compara', 'GeneMember' );
-my $ha = Bio::EnsEMBL::Registry->get_adaptor( 'multi', 'compara', 'Homology' );
+  Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Compara', 'GeneMember' );
+my $ha = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Compara', 'Homology' );
 
 # Ensure database connection isn't lost; Ensembl 64+ can do this more elegantly
 ## no critic (ProhibitMagicNumbers)
