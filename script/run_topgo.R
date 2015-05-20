@@ -42,9 +42,11 @@ write.table( allRes, file=paste0(outputPrefix, ".all.tsv"), quote=FALSE,
 
 # Write PDF
 pdf(paste0(outputPrefix, ".pdf"))
-showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes=5, useInfo="all")
-showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes=10, useInfo="all")
-showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes=nrow(sigRes),
-    useInfo="all")
-lapply(sigRes[,1], function(x) showGroupDensity(GOdata, x))
+suppressWarnings(showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes=5,
+    useInfo="all"))
+suppressWarnings(showSigOfNodes(GOdata, score(resultKS.elim), firstSigNodes=10,
+    useInfo="all"))
+suppressWarnings(showSigOfNodes(GOdata, score(resultKS.elim),
+    firstSigNodes=nrow(sigRes), useInfo="all"))
+suppressWarnings(lapply(sigRes[,1], function(x) showGroupDensity(GOdata, x)))
 dev.off()
