@@ -256,6 +256,17 @@ sub run_topgo {
     $cmd .= ' 2>' . $stderr_file;
     WIFEXITED( system $cmd) or confess "Couldn't run $cmd ($OS_ERROR)";
 
+    # Check whether to run again (only if failed due to database locking)
+    my $retries_remaining = 10;    # Only run again a maximum of 10 times
+    while (-s $stderr_file
+        && path($stderr_file)->slurp =~ m/database \s is \s locked/xms
+        && $retries_remaining )
+    {
+        $retries_remaining--;
+        warn "Retrying topGO (retries remaining: $retries_remaining):\n$cmd\n";
+        WIFEXITED( system $cmd) or confess "Couldn't run $cmd ($OS_ERROR)";
+    }
+
     # Check for errors
     if ( -s $stderr_file ) {
         confess sprintf 'Error from topGO: %s', path($stderr_file)->slurp;
