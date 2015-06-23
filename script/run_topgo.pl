@@ -45,7 +45,7 @@ my $dir = q{.};
 my $input_file;
 my $detct_file;
 my $gene_field    = 1;
-my $p_value_field = 2;
+my $p_value_field = 3;
 my $fold_change_field;
 my $name_field;
 my $description_field;
