@@ -35,7 +35,7 @@ allRes <- GenTable(GOdata, elimKS=resultKS.elim, topNodes=nodecount)
 # Horrible way to get all the genes associated with each term
 allRes$Genes <- sapply(allRes$GO.ID,
     function(x) gsub('[c()" \n]', '', genesInTerm(GOdata, x)))
-sigRes <- allRes[as.numeric(allRes$elimKS) < sigLevel,]
+sigRes <- allRes[suppressWarnings(as.numeric(allRes$elimKS)) < sigLevel,]
 
 # Write results
 write.table( allRes, file=paste0(outputPrefix, ".all.tsv"), quote=FALSE,
