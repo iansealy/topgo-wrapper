@@ -1,3 +1,4 @@
+suppressWarnings(library(tcltk))
 suppressPackageStartupMessages(library(topGO))
 suppressPackageStartupMessages(library(Rgraphviz))
 suppressPackageStartupMessages(library(grid))
