@@ -40,6 +40,7 @@ my $ensembl_dbhost  = 'ensembldb.ensembl.org';
 my $ensembl_dbport;
 my $ensembl_dbuser = 'anonymous';
 my $ensembl_dbpass;
+my $slim;
 my ( $debug, $help, $man );
 
 # Get and check command line options
@@ -87,7 +88,9 @@ foreach my $slice ( @{$slices} ) {
 
         my $links = $gene->get_all_DBLinks();
         foreach my $link ( @{$links} ) {
-            next if ( ref $link ) !~ m/OntologyXref/xms;
+            next
+              if ( !$slim && ( ref $link ) !~ m/OntologyXref/xms )
+              || $slim && $link->dbname ne 'goslim_goa';
             my $term = $goa->fetch_by_accession( $link->primary_id );
             next if !$term || !$term->namespace;
             print join "\t", $gene->stable_id, $term->accession,
@@ -107,6 +110,7 @@ sub get_and_check_options {
         'ensembl_dbport=i'  => \$ensembl_dbport,
         'ensembl_dbuser=s'  => \$ensembl_dbuser,
         'ensembl_dbpass=s'  => \$ensembl_dbpass,
+        'slim'              => \$slim,
         'debug'             => \$debug,
         'help'              => \$help,
         'man'               => \$man,
@@ -131,6 +135,7 @@ sub get_and_check_options {
         [--ensembl_dbport port]
         [--ensembl_dbuser username]
         [--ensembl_dbpass password]
+        [--slim]
         [--debug]
         [--help]
         [--man]
@@ -158,6 +163,10 @@ Ensembl MySQL database username.
 =item B<--ensembl_dbpass PASSWORD>
 
 Ensembl MySQL database password.
+
+=item B<--slim>
+
+Restrict to GOA GO slim subset of GO terms.
 
 =item B<--debug>
 
