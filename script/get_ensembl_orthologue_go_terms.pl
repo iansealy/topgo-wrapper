@@ -101,9 +101,8 @@ foreach my $slice ( @{$slices} ) {
         }
         next if !$member;
 
-        my $homologies =
-          $ha->fetch_all_by_Member_paired_species( $member,
-            $ensembl_orthologue_species );
+        my $homologies = $ha->fetch_all_by_Member( $member,
+            -TARGET_SPECIES => $ensembl_orthologue_species );
         foreach my $homology ( @{$homologies} ) {
             foreach my $homology_member ( @{ $homology->gene_list() } ) {
                 next if $homology_member->stable_id eq $gene->stable_id;
