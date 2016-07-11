@@ -1,5 +1,6 @@
 ## no critic (RequireUseStrict, RequireUseWarnings, RequireTidyCode)
 package TopGO;
+## VERSION
 ## use critic
 
 # ABSTRACT: TopGO wrapper
