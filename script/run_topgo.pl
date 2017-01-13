@@ -50,6 +50,8 @@ my $fold_change_field;
 my $name_field;
 my $description_field;
 my $sig_level = 0.05;
+my $input_sig_level;
+my $output_sig_level;
 my $go_terms_file;
 my $r_binary   = 'R';
 my $has_header = 0;
@@ -57,6 +59,10 @@ my ( $debug, $help, $man );
 
 # Get and check command line options
 get_and_check_options();
+
+# Use default significance level for both, unless specifically specified
+$input_sig_level  = $input_sig_level  || $sig_level;
+$output_sig_level = $output_sig_level || $sig_level;
 
 # Automatically configure for DETCT output
 if ($detct_file) {
@@ -163,13 +169,14 @@ foreach my $domain ( sort keys %DOMAIN ) {
         my $output_prefix = File::Spec->catfile( $dir{$set}, $domain );
         TopGO::run_topgo(
             {
-                r_binary       => $r_binary,
-                topgo_script   => $topgo_script,
-                gene_list_file => $gene_list_file{$set},
-                mapping_file   => $gene_to_go_mapping_file,
-                domain         => $domain,
-                output_prefix  => $output_prefix,
-                sig_level      => $sig_level,
+                r_binary         => $r_binary,
+                topgo_script     => $topgo_script,
+                gene_list_file   => $gene_list_file{$set},
+                mapping_file     => $gene_to_go_mapping_file,
+                domain           => $domain,
+                output_prefix    => $output_prefix,
+                input_sig_level  => $input_sig_level,
+                output_sig_level => $output_sig_level,
             }
         );
         TopGO::annotate_with_genes(
@@ -182,10 +189,16 @@ foreach my $domain ( sort keys %DOMAIN ) {
                 descriptions => $description_for,
             }
         );
-        TopGO::filter_by_significance( $output_prefix . '.all.tsv',
-            $output_prefix . '.sig.tsv', $sig_level );
-        TopGO::filter_by_significance( $output_prefix . '.all.genes.tsv',
-            $output_prefix . '.sig.genes.tsv', $sig_level );
+        TopGO::filter_by_significance(
+            $output_prefix . '.all.tsv',
+            $output_prefix . '.sig.tsv',
+            $output_sig_level
+        );
+        TopGO::filter_by_significance(
+            $output_prefix . '.all.genes.tsv',
+            $output_prefix . '.sig.genes.tsv',
+            $output_sig_level
+        );
     }
 }
 
@@ -203,6 +216,8 @@ sub get_and_check_options {
         'name_field=i'        => \$name_field,
         'description_field=i' => \$description_field,
         'sig_level=f'         => \$sig_level,
+        'input_sig_level=f'   => \$input_sig_level,
+        'output_sig_level=f'  => \$output_sig_level,
         'go_terms_file=s'     => \$go_terms_file,
         'r_binary=s'          => \$r_binary,
         'header'              => \$has_header,
@@ -244,6 +259,8 @@ sub get_and_check_options {
         [--name_field int]
         [--description_field int]
         [--sig_level float]
+        [--input_sig_level float]
+        [--output_sig_level float]
         [--go_terms_file file]
         [--r_binary file]
         [--header]
@@ -291,6 +308,14 @@ The field that specifies the gene's description in the input file.
 =item B<--sig_level FLOAT>
 
 The level at which p values are considered significant.
+
+=item B<--input_sig_level FLOAT>
+
+The level at which input p values are considered significant.
+
+=item B<--output_sig_level FLOAT>
+
+The level at which output (i.e. topGO) p values are considered significant.
 
 =item B<--go_terms_file FILE>
 

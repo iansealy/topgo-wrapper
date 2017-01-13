@@ -203,24 +203,26 @@ sub write_mapping_file {
 =func run_topgo
 
   Usage       : TopGO::run_topgo( {
-                    r_binary       => 'R',
-                    topgo_script   => 'script/run_topgo.R',
-                    gene_list_file => 'gene_list.txt',
-                    mapping_file   => 'gene2go.txt',
-                    domain         => 'BP',
-                    output_prefix  => 'BP_all',
-                    sig_level      => 0.05,
+                    r_binary         => 'R',
+                    topgo_script     => 'script/run_topgo.R',
+                    gene_list_file   => 'gene_list.txt',
+                    mapping_file     => 'gene2go.txt',
+                    domain           => 'BP',
+                    output_prefix    => 'BP_all',
+                    input_sig_level  => 0.05,
+                    output_sig_level => 0.05,
                 } );
   Purpose     : Run topGO
   Returns     : undef
   Parameters  : Hashref {
-                    r_binary       => String (the R binary),
-                    topgo_script   => String (the topGO script),
-                    gene_list_file => String (the gene list file),
-                    mapping_file   => String (the mapping file),
-                    domain         => String (the domain),
-                    output_prefix  => String (the output prefix),
-                    sig_level      => Float (significance level threshold),
+                    r_binary         => String (the R binary),
+                    topgo_script     => String (the topGO script),
+                    gene_list_file   => String (the gene list file),
+                    mapping_file     => String (the mapping file),
+                    domain           => String (the domain),
+                    output_prefix    => String (the output prefix),
+                    input_sig_level  => Float (input significance level),
+                    output_sig_level => Float (output significance level),
                 }
   Throws      : If R binary is missing
                 If topGO script is missing
@@ -228,7 +230,8 @@ sub write_mapping_file {
                 If mapping file is missing
                 If domain is missing
                 If output prefix is missing
-                If significance level is missing
+                If input significance level is missing
+                If output significance level is missing
                 If command line can't be run
   Comments    : None
 
@@ -244,15 +247,18 @@ sub run_topgo {
     confess 'No mapping file specified'  if !defined $arg_ref->{mapping_file};
     confess 'No domain specified'        if !defined $arg_ref->{domain};
     confess 'No output prefix specified' if !defined $arg_ref->{output_prefix};
-    confess 'No significance level specified' if !defined $arg_ref->{sig_level};
+    confess 'No input significance level specified'
+      if !defined $arg_ref->{input_sig_level};
+    confess 'No output significance level specified'
+      if !defined $arg_ref->{output_sig_level};
 
     my $stdout_file = $arg_ref->{output_prefix} . '.o';
     my $stderr_file = $arg_ref->{output_prefix} . '.e';
 
     my $cmd = join q{ }, $arg_ref->{r_binary}, '--slave', '--args',
       $arg_ref->{gene_list_file}, $arg_ref->{mapping_file}, $arg_ref->{domain},
-      $arg_ref->{output_prefix},  $arg_ref->{sig_level},    '<',
-      $arg_ref->{topgo_script};
+      $arg_ref->{output_prefix}, $arg_ref->{input_sig_level},
+      $arg_ref->{output_sig_level}, '<', $arg_ref->{topgo_script};
     $cmd .= ' 1>' . $stdout_file;
     $cmd .= ' 2>' . $stderr_file;
     WIFEXITED( system $cmd) or confess "Couldn't run $cmd ($OS_ERROR)";
