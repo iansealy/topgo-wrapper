@@ -44,8 +44,9 @@ Readonly our %DOMAIN => (
 my $dir = q{.};
 my $input_file;
 my $detct_file;
-my $gene_field    = 1;
-my $p_value_field = 3;
+my $genes_of_interest_file;
+my $gene_field = 1;
+my $p_value_field;
 my $fold_change_field;
 my $name_field;
 my $description_field;
@@ -116,10 +117,9 @@ make_path($dir);
 
 # Get p values and other data for every Ensembl gene in the gene universe
 my ( $p_value_for, $fold_change_for, $name_for, $description_for ) =
-  TopGO::read_gene_info(
-    $input_file,        $has_header, $gene_field, $p_value_field,
-    $fold_change_field, $name_field, $description_field
-  );
+  TopGO::read_gene_info( $input_file, $genes_of_interest_file, $has_header,
+    $gene_field, $p_value_field, $fold_change_field, $name_field,
+    $description_field );
 
 # Get GO terms for every Ensembl gene
 my $go_terms_for = TopGO::read_go_terms($go_terms_file);
@@ -158,7 +158,11 @@ if ($fold_change_field) {
 }
 
 # Write mapping file and run topGO for each domain
-my $topgo_script = File::Spec->catfile( dirname(__FILE__), 'run_topgo.R' );
+my $topgo_script = File::Spec->catfile( dirname(__FILE__), 'run_topgo_ks.R' );
+if ($genes_of_interest_file) {
+    $topgo_script =
+      File::Spec->catfile( dirname(__FILE__), 'run_topgo_fisher.R' );
+}
 foreach my $domain ( sort keys %DOMAIN ) {
     my $gene_to_go_mapping_file =
       File::Spec->catfile( $dir,
@@ -207,23 +211,24 @@ sub get_and_check_options {
 
     # Get options
     GetOptions(
-        'dir=s'               => \$dir,
-        'input_file=s'        => \$input_file,
-        'detct_file=s'        => \$detct_file,
-        'gene_field=i'        => \$gene_field,
-        'p_value_field=i'     => \$p_value_field,
-        'fold_change_field=i' => \$fold_change_field,
-        'name_field=i'        => \$name_field,
-        'description_field=i' => \$description_field,
-        'sig_level=f'         => \$sig_level,
-        'input_sig_level=f'   => \$input_sig_level,
-        'output_sig_level=f'  => \$output_sig_level,
-        'go_terms_file=s'     => \$go_terms_file,
-        'r_binary=s'          => \$r_binary,
-        'header'              => \$has_header,
-        'debug'               => \$debug,
-        'help'                => \$help,
-        'man'                 => \$man,
+        'dir=s'                    => \$dir,
+        'input_file=s'             => \$input_file,
+        'detct_file=s'             => \$detct_file,
+        'genes_of_interest_file=s' => \$genes_of_interest_file,
+        'gene_field=i'             => \$gene_field,
+        'p_value_field=i'          => \$p_value_field,
+        'fold_change_field=i'      => \$fold_change_field,
+        'name_field=i'             => \$name_field,
+        'description_field=i'      => \$description_field,
+        'sig_level=f'              => \$sig_level,
+        'input_sig_level=f'        => \$input_sig_level,
+        'output_sig_level=f'       => \$output_sig_level,
+        'go_terms_file=s'          => \$go_terms_file,
+        'r_binary=s'               => \$r_binary,
+        'header'                   => \$has_header,
+        'debug'                    => \$debug,
+        'help'                     => \$help,
+        'man'                      => \$man,
     ) or pod2usage(2);
 
     # Documentation
@@ -244,6 +249,10 @@ sub get_and_check_options {
         pod2usage("--go_terms_file must be specified\n");
     }
 
+    if ( !$p_value_field && !$genes_of_interest_file ) {
+        $p_value_field = 3;    # Default
+    }
+
     return;
 }
 
@@ -253,6 +262,7 @@ sub get_and_check_options {
         [--dir directory]
         [--input_file file]
         [--detct_file file]
+        [--genes_of_interest_file file]
         [--gene_field int]
         [--p_value_field int]
         [--fold_change_field int]
@@ -278,12 +288,18 @@ Working directory.
 
 =item B<--input_file FILE>
 
-The tab-separated file containing Ensembl gene IDs and associated p values.
+The tab-separated file containing Ensembl gene IDs and (optionall) associated p
+values.
 
 =item B<--detct_file FILE>
 
 The all.tsv file output by the DETCT pipeline. If this option is specified then
 any field options are ignored.
+
+=item B<--genes_of_interest_file FILE>
+
+The file containing Ensembl gene IDs of interest (in which case p values aren't
+needed).
 
 =item B<--gene_field INT>
 

@@ -42,8 +42,9 @@ our @EXPORT_OK = qw(
 
   Usage       : ($p_value_for, $fold_change_for, $name_for, $description_for)
                     = read_gene_info(
-                    $input_file, $has_header, $gene_field, $p_value_field,
-                    $fold_change_field, $name_field, $description_field
+                    $input_file, $genes_of_interest_file, $has_header,
+                    $gene_field, $p_value_field, $fold_change_field,
+                    $name_field, $description_field
                 );
   Purpose     : Read p values, fold change, name and description from a file and
                 organise by gene ID
@@ -52,6 +53,7 @@ our @EXPORT_OK = qw(
                 Hashref { String (gene ID) => String (name) }
                 Hashref { String (gene ID) => String (description) }
   Parameters  : String (the input filename)
+                String (the genes of interest filename)
                 Boolean (whether input file has header)
                 Int (the gene field)
                 Int (the p value field)
@@ -64,13 +66,27 @@ our @EXPORT_OK = qw(
 =cut
 
 sub read_gene_info {
-    my (
-        $input_file,    $has_header,        $gene_field,
-        $p_value_field, $fold_change_field, $name_field,
-        $description_field
-    ) = @_;
+    my ( $input_file, $genes_of_interest_file, $has_header, $gene_field,
+        $p_value_field, $fold_change_field, $name_field, $description_field )
+      = @_;
 
     my ( %p_value_for, %fold_change_for, %name_for, %description_for );
+
+    if ($genes_of_interest_file) {
+
+        # If gene of interest then just set "p value" to 1
+        open my $fh, '<', $genes_of_interest_file;
+        if ($has_header) {
+            <$fh>;
+        }
+        while ( my $line = <$fh> ) {
+            chomp $line;
+            my @fields = split /\t/xms, $line;
+            my $gene_id = $fields[0];
+            $p_value_for{$gene_id} = 1;
+        }
+        close $fh;
+    }
 
     open my $fh, '<', $input_file;
     if ($has_header) {
@@ -90,14 +106,23 @@ sub read_gene_info {
         next if $p_value eq q{-} || $p_value eq 'NA';    # Ignore filtered genes
 
         foreach my $gene_id ( split /,/xms, $gene_ids ) {
-            if ( exists $p_value_for{$gene_id}
-                && $p_value_for{$gene_id} < $p_value )
-            {
-                # Keep lowest p value (and its fold change) if gene already seen
-                $p_value     = $p_value_for{$gene_id};
-                $fold_change = $fold_change_for{$gene_id};
+            if ($genes_of_interest_file) {
+
+                # If not gene of interest then just set "p value" to 0
+                if ( !exists $p_value_for{$gene_id} ) {
+                    $p_value_for{$gene_id} = 0;
+                }
             }
-            $p_value_for{$gene_id}     = $p_value;
+            else {
+                if ( exists $p_value_for{$gene_id}
+                    && $p_value_for{$gene_id} < $p_value )
+                {
+                    # Keep lowest p value (and fold change) if gene already seen
+                    $p_value     = $p_value_for{$gene_id};
+                    $fold_change = $fold_change_for{$gene_id};
+                }
+                $p_value_for{$gene_id} = $p_value;
+            }
             $fold_change_for{$gene_id} = $fold_change;
             $name_for{$gene_id}        = $name;
             $description_for{$gene_id} = $description;
@@ -204,7 +229,7 @@ sub write_mapping_file {
 
   Usage       : TopGO::run_topgo( {
                     r_binary         => 'R',
-                    topgo_script     => 'script/run_topgo.R',
+                    topgo_script     => 'script/run_topgo_ks.R',
                     gene_list_file   => 'gene_list.txt',
                     mapping_file     => 'gene2go.txt',
                     domain           => 'BP',
