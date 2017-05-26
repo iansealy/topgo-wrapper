@@ -97,7 +97,7 @@ sub read_gene_info {
         my @fields = split /\t/xms, $line;
         my $gene_ids = $fields[ $gene_field - 1 ];
         next if $gene_ids eq q{-};
-        my $p_value = $fields[ $p_value_field - 1 ];
+        my $p_value = $p_value_field ? $fields[ $p_value_field - 1 ] : q{};
         my $fold_change =
           $fold_change_field ? $fields[ $fold_change_field - 1 ] : q{};
         my $name = $name_field ? $fields[ $name_field - 1 ] : q{};
