@@ -39,11 +39,14 @@ Readonly our %DOMAIN => (
     CC => 'cellular_component',
     MF => 'molecular_function',
 );
+Readonly our @ALGORITHM => qw( classic elim weight weight01 lea parentchild );
+Readonly our %ALGORITHM => map { $_ => 1 } @ALGORITHM;
 
 # Default options
 my $dir = q{.};
 my $input_file;
 my $detct_file;
+my $algorithm = 'elim';
 my $genes_of_interest_file;
 my $gene_field = 1;
 my $p_value_field;
@@ -175,6 +178,7 @@ foreach my $domain ( sort keys %DOMAIN ) {
             {
                 r_binary         => $r_binary,
                 topgo_script     => $topgo_script,
+                algorithm        => $algorithm,
                 gene_list_file   => $gene_list_file{$set},
                 mapping_file     => $gene_to_go_mapping_file,
                 domain           => $domain,
@@ -214,6 +218,7 @@ sub get_and_check_options {
         'dir=s'                    => \$dir,
         'input_file=s'             => \$input_file,
         'detct_file=s'             => \$detct_file,
+        'algorithm=s'              => \$algorithm,
         'genes_of_interest_file=s' => \$genes_of_interest_file,
         'gene_field=i'             => \$gene_field,
         'p_value_field=i'          => \$p_value_field,
@@ -253,6 +258,11 @@ sub get_and_check_options {
         $p_value_field = 3;    # Default
     }
 
+    if ( !exists $ALGORITHM{$algorithm} ) {
+        pod2usage( sprintf "--algorithm must be one of %s\n",
+            join ', ', @ALGORITHM );
+    }
+
     return;
 }
 
@@ -262,6 +272,7 @@ sub get_and_check_options {
         [--dir directory]
         [--input_file file]
         [--detct_file file]
+        [--algorithm string]
         [--genes_of_interest_file file]
         [--gene_field int]
         [--p_value_field int]
@@ -288,13 +299,18 @@ Working directory.
 
 =item B<--input_file FILE>
 
-The tab-separated file containing Ensembl gene IDs and (optionall) associated p
+The tab-separated file containing Ensembl gene IDs and (optional) associated p
 values.
 
 =item B<--detct_file FILE>
 
 The all.tsv file output by the DETCT pipeline. If this option is specified then
 any field options are ignored.
+
+=item B<--algorithm ALGORITHM>
+
+The algorithm used by topGO. Default to elim. Can also be classic, weight,
+weight01, lea or parentchild.
 
 =item B<--genes_of_interest_file FILE>
 

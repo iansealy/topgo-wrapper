@@ -7,8 +7,9 @@ Args           <- commandArgs()
 geneListFile   <- Args[4]
 mappingFile    <- Args[5]
 ontology       <- Args[6]
-outputPrefix   <- Args[7]
-outputSigLevel <- as.numeric( Args[8] )
+algorithm      <- Args[7]
+outputPrefix   <- Args[8]
+outputSigLevel <- as.numeric( Args[9] )
 
 # Gene selection function
 topDiffGenes <- function(allScore) {
@@ -29,14 +30,17 @@ GOdata <- suppressMessages(new("topGOdata", ontology=ontology, allGenes=genes,
     geneSel=topDiffGenes, annot=annFUN.gene2GO, gene2GO=geneID2GO, nodeSize=10))
 
 # Run topGO
-resultFisher.elim <- suppressMessages(runTest(GOdata, algorithm="elim",
+resultFisher <- suppressMessages(runTest(GOdata, algorithm=algorithm,
     statistic="fisher"))
-nodecount <- length(score(resultFisher.elim))
-allRes <- GenTable(GOdata, elimFisher=resultFisher.elim, topNodes=nodecount)
+nodecount <- length(score(resultFisher))
+allRes <- GenTable(GOdata, resultFisher, topNodes=nodecount)
+colNames <- names(allRes)
+colNames[6] <- 'pval'
+names(allRes) <- colNames
 # Horrible way to get all the genes associated with each term
 allRes$Genes <- sapply(allRes$GO.ID,
     function(x) gsub('[c()" \n]', '', genesInTerm(GOdata, x)))
-sigRes <- allRes[suppressWarnings(as.numeric(allRes$elimFisher)) < outputSigLevel,]
+sigRes <- allRes[suppressWarnings(as.numeric(allRes$pval)) < outputSigLevel,]
 
 # Write results
 write.table( allRes, file=paste0(outputPrefix, ".all.tsv"), quote=FALSE,
@@ -44,11 +48,11 @@ write.table( allRes, file=paste0(outputPrefix, ".all.tsv"), quote=FALSE,
 
 # Write PDF
 pdf(paste0(outputPrefix, ".pdf"))
-try(suppressWarnings(showSigOfNodes(GOdata, score(resultFisher.elim),
+try(suppressWarnings(showSigOfNodes(GOdata, score(resultFisher),
     firstSigNodes=5, useInfo="all")), silent=TRUE)
-try(suppressWarnings(showSigOfNodes(GOdata, score(resultFisher.elim),
+try(suppressWarnings(showSigOfNodes(GOdata, score(resultFisher),
     firstSigNodes=10, useInfo="all")), silent=TRUE)
-try(suppressWarnings(showSigOfNodes(GOdata, score(resultFisher.elim),
+try(suppressWarnings(showSigOfNodes(GOdata, score(resultFisher),
     firstSigNodes=nrow(sigRes), useInfo="all")), silent=TRUE)
 try(suppressWarnings(lapply(sigRes[,1],
     function(x) showGroupDensity(GOdata, x))), silent=TRUE)

@@ -230,6 +230,7 @@ sub write_mapping_file {
   Usage       : TopGO::run_topgo( {
                     r_binary         => 'R',
                     topgo_script     => 'script/run_topgo_ks.R',
+                    algorithm        => 'elim',
                     gene_list_file   => 'gene_list.txt',
                     mapping_file     => 'gene2go.txt',
                     domain           => 'BP',
@@ -242,6 +243,7 @@ sub write_mapping_file {
   Parameters  : Hashref {
                     r_binary         => String (the R binary),
                     topgo_script     => String (the topGO script),
+                    algorithm        => String (the algorithm),
                     gene_list_file   => String (the gene list file),
                     mapping_file     => String (the mapping file),
                     domain           => String (the domain),
@@ -251,6 +253,7 @@ sub write_mapping_file {
                 }
   Throws      : If R binary is missing
                 If topGO script is missing
+                If algorithm is missing
                 If gene list file is missing
                 If mapping file is missing
                 If domain is missing
@@ -267,6 +270,7 @@ sub run_topgo {
 
     confess 'No R binary specified'     if !defined $arg_ref->{r_binary};
     confess 'No topGO script specified' if !defined $arg_ref->{topgo_script};
+    confess 'No algorithm specified'    if !defined $arg_ref->{algorithm};
     confess 'No gene list file specified'
       if !defined $arg_ref->{gene_list_file};
     confess 'No mapping file specified'  if !defined $arg_ref->{mapping_file};
@@ -282,7 +286,8 @@ sub run_topgo {
 
     my $cmd = join q{ }, $arg_ref->{r_binary}, '--slave', '--args',
       $arg_ref->{gene_list_file}, $arg_ref->{mapping_file}, $arg_ref->{domain},
-      $arg_ref->{output_prefix}, $arg_ref->{input_sig_level},
+      $arg_ref->{algorithm}, $arg_ref->{output_prefix},
+      $arg_ref->{input_sig_level},
       $arg_ref->{output_sig_level}, '<', $arg_ref->{topgo_script};
     $cmd .= ' 1>' . $stdout_file;
     $cmd .= ' 2>' . $stderr_file;
