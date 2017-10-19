@@ -176,23 +176,6 @@ if ($run_up_and_down) {
         \@down_genes );
 }
 
-# Remove sets where genes of interest have no GO terms
-if ($genes_of_interest_file) {
-    my @extant_sets = @sets;
-    foreach my $set (@extant_sets) {
-        my $got_go_terms = 0;
-        foreach my $sig_gene ( @{ $sig_genes_for{$set} } ) {
-            if ( exists $go_terms_for->{$sig_gene} ) {
-                $got_go_terms = 1;
-                last;
-            }
-        }
-        if ( !$got_go_terms ) {
-            @sets = grep { $_ ne $set } @sets;
-        }
-    }
-}
-
 # Write mapping file and run topGO for each domain
 my $topgo_script = File::Spec->catfile( dirname(__FILE__), 'run_topgo_ks.R' );
 if ($genes_of_interest_file) {
@@ -206,6 +189,19 @@ foreach my $domain ( sort keys %DOMAIN ) {
     TopGO::write_mapping_file( [ sort keys %{$p_value_for} ],
         $go_terms_for, $DOMAIN{$domain}, $gene_to_go_mapping_file );
     foreach my $set (@sets) {
+
+        # Skip set if genes of interest have no GO terms
+        if ($genes_of_interest_file) {
+            my $got_go_terms = 0;
+            foreach my $sig_gene ( @{ $sig_genes_for{$set} } ) {
+                if ( exists $go_terms_for->{$sig_gene}{ $DOMAIN{$domain} } ) {
+                    $got_go_terms = 1;
+                    last;
+                }
+            }
+            next if !$got_go_terms;
+        }
+
         my $output_prefix = File::Spec->catfile( $dir{$set}, $domain );
         TopGO::run_topgo(
             {
