@@ -134,18 +134,22 @@ $gene_list_file{'all'} = File::Spec->catfile( $dir, 'gene_list.txt' );
 $dir{'all'} = $dir;
 TopGO::write_gene_list( $p_value_for, $gene_list_file{'all'} );
 
-# If fold changes are available, also run up and downregulated subsets (if any)
-my @sig_genes =
-  $genes_of_interest_file
-  ? grep { $p_value_for->{$_} == 1 } keys %{$p_value_for}
-  : grep { $p_value_for->{$_} < $input_sig_level } keys %{$p_value_for};
-my @up_sig_genes =
-  grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} > 0 }
-  @sig_genes;
-my @down_sig_genes =
-  grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} < 0 }
-  @sig_genes;
-if ( $fold_change_field && @up_sig_genes && @down_sig_genes ) {
+# If fold changes are available and, if genes of interest, not all are up or
+# downregulated, also run up and downregulated subsets
+my $run_up_and_down = $fold_change_field ? 1 : 0;
+if ($genes_of_interest_file) {
+    my @sig_genes = grep { $p_value_for->{$_} == 1 } keys %{$p_value_for};
+    my @up_sig_genes =
+      grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} > 0 }
+      @sig_genes;
+    my @down_sig_genes =
+      grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} < 0 }
+      @sig_genes;
+    if ( !@up_sig_genes || !@down_sig_genes ) {
+        $run_up_and_down = 0;
+    }
+}
+if ($run_up_and_down) {
     push @sets, 'up', 'down';
 
     $gene_list_file{'up'} = File::Spec->catfile( $dir, 'up', 'gene_list.txt' );
