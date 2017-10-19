@@ -136,16 +136,18 @@ TopGO::write_gene_list( $p_value_for, $gene_list_file{'all'} );
 
 # If fold changes are available and, if genes of interest, not all are up or
 # downregulated, also run up and downregulated subsets
+my %sig_genes_for;
 my $run_up_and_down = $fold_change_field ? 1 : 0;
 if ($genes_of_interest_file) {
-    my @sig_genes = grep { $p_value_for->{$_} == 1 } keys %{$p_value_for};
-    my @up_sig_genes =
+    @{ $sig_genes_for{'all'} } =
+      grep { $p_value_for->{$_} == 1 } keys %{$p_value_for};
+    @{ $sig_genes_for{'up'} } =
       grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} > 0 }
-      @sig_genes;
-    my @down_sig_genes =
+      @{ $sig_genes_for{'all'} };
+    @{ $sig_genes_for{'down'} } =
       grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} < 0 }
-      @sig_genes;
-    if ( !@up_sig_genes || !@down_sig_genes ) {
+      @{ $sig_genes_for{'all'} };
+    if ( !@{ $sig_genes_for{'up'} } || !@{ $sig_genes_for{'down'} } ) {
         $run_up_and_down = 0;
     }
 }
@@ -172,6 +174,23 @@ if ($run_up_and_down) {
     TopGO::write_gene_list( $p_value_for, $gene_list_file{'up'}, \@up_genes );
     TopGO::write_gene_list( $p_value_for, $gene_list_file{'down'},
         \@down_genes );
+}
+
+# Remove sets where genes of interest have no GO terms
+if ($genes_of_interest_file) {
+    my @extant_sets = @sets;
+    foreach my $set (@extant_sets) {
+        my $got_go_terms = 0;
+        foreach my $sig_gene ( @{ $sig_genes_for{$set} } ) {
+            if ( exists $go_terms_for->{$sig_gene} ) {
+                $got_go_terms = 1;
+                last;
+            }
+        }
+        if ( !$got_go_terms ) {
+            @sets = grep { $_ ne $set } @sets;
+        }
+    }
 }
 
 # Write mapping file and run topGO for each domain
