@@ -34,12 +34,18 @@ use Bio::EnsEMBL::Registry;
 
 =cut
 
+# Constants
+Readonly our $ENSEMBL_DBHOST => 'ensembldb.ensembl.org';
+Readonly our $ENSEMBL_DBPORT;
+Readonly our $ENSEMBL_DBUSER => 'anonymous';
+Readonly our $ENSEMBL_DBPASS;
+
 # Default options
 my $ensembl_species = 'danio_rerio';
-my $ensembl_dbhost  = 'ensembldb.ensembl.org';
-my $ensembl_dbport;
-my $ensembl_dbuser = 'anonymous';
-my $ensembl_dbpass;
+my $ensembl_dbhost  = $ENSEMBL_DBHOST;
+my $ensembl_dbport  = $ENSEMBL_DBPORT;
+my $ensembl_dbuser  = $ENSEMBL_DBUSER;
+my $ensembl_dbpass  = $ENSEMBL_DBPASS;
 my $slim;
 my ( $debug, $help, $man );
 
@@ -62,6 +68,32 @@ warn 'Genebuild version: ', $genebuild_version, "\n" if $debug;
 my $sa =
   Bio::EnsEMBL::Registry->get_adaptor( $ensembl_species, 'core', 'Slice' );
 my $goa = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Ontology', 'GOTerm' );
+
+# Check adaptors
+if ( !$goa ) {
+
+    # Connnect to Ensembl databases, including default
+    Bio::EnsEMBL::Registry->clear();
+    Bio::EnsEMBL::Registry->load_registry_from_multiple_dbs(
+        {
+            -host => $ENSEMBL_DBHOST,
+            -port => $ENSEMBL_DBPORT,
+            -user => $ENSEMBL_DBUSER,
+            -pass => $ENSEMBL_DBPASS,
+        },
+        {
+            -host => $ensembl_dbhost,
+            -port => $ensembl_dbport,
+            -user => $ensembl_dbuser,
+            -pass => $ensembl_dbpass,
+        },
+    );
+
+    # Get Ensembl adaptors
+    $sa =
+      Bio::EnsEMBL::Registry->get_adaptor( $ensembl_species, 'core', 'Slice' );
+    $goa = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Ontology', 'GOTerm' );
+}
 
 # Ensure database connection isn't lost; Ensembl 64+ can do this more elegantly
 ## no critic (ProhibitMagicNumbers)
