@@ -63,6 +63,10 @@ warn 'Genebuild version: ', $genebuild_version, "\n" if $debug;
 my $sa =
   Bio::EnsEMBL::Registry->get_adaptor( $ensembl_species, 'core', 'Slice' );
 my $goa = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Ontology', 'GOTerm' );
+if ( !$goa ) {
+    $goa = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Ontology',
+        'OntologyTerm' );
+}
 my $gma =
   Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Compara', 'GeneMember' );
 my $ha = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Compara', 'Homology' );

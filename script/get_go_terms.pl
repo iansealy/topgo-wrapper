@@ -68,6 +68,10 @@ warn 'Genebuild version: ', $genebuild_version, "\n" if $debug;
 
 # Get Ensembl adaptors
 my $goa = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Ontology', 'GOTerm' );
+if ( !$goa ) {
+    $goa = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Ontology',
+        'OntologyTerm' );
+}
 
 # Ensure database connection isn't lost; Ensembl 64+ can do this more elegantly
 ## no critic (ProhibitMagicNumbers)

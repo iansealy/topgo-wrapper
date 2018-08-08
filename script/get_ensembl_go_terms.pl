@@ -68,6 +68,10 @@ warn 'Genebuild version: ', $genebuild_version, "\n" if $debug;
 my $sa =
   Bio::EnsEMBL::Registry->get_adaptor( $ensembl_species, 'core', 'Slice' );
 my $goa = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Ontology', 'GOTerm' );
+if ( !$goa ) {
+    $goa = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Ontology',
+        'OntologyTerm' );
+}
 
 # Check adaptors
 if ( !$goa ) {
@@ -93,6 +97,10 @@ if ( !$goa ) {
     $sa =
       Bio::EnsEMBL::Registry->get_adaptor( $ensembl_species, 'core', 'Slice' );
     $goa = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Ontology', 'GOTerm' );
+    if ( !$goa ) {
+        $goa = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Ontology',
+            'OntologyTerm' );
+    }
 }
 
 # Ensure database connection isn't lost; Ensembl 64+ can do this more elegantly
