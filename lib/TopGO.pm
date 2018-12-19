@@ -81,7 +81,7 @@ sub read_gene_info {
         }
         while ( my $line = <$fh> ) {
             chomp $line;
-            my @fields = split /\t/xms, $line;
+            my @fields  = split /\t/xms, $line;
             my $gene_id = $fields[0];
             $p_value_for{$gene_id} = 1;
         }
@@ -94,7 +94,7 @@ sub read_gene_info {
     }
     while ( my $line = <$fh> ) {
         chomp $line;
-        my @fields = split /\t/xms, $line;
+        my @fields   = split /\t/xms, $line;
         my $gene_ids = $fields[ $gene_field - 1 ];
         next if $gene_ids eq q{-};
         my $p_value = $p_value_field ? $fields[ $p_value_field - 1 ] : q{};
@@ -361,7 +361,7 @@ sub annotate_with_genes {
     open my $fh_out, '>', $arg_ref->{output_file};
 
     # Get input header
-    my $header = <$fh_in>;
+    my $header        = <$fh_in>;
     my @header_fields = split /\t/xms, $header;
     pop @header_fields;
 

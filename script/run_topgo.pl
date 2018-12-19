@@ -131,7 +131,7 @@ my $go_terms_for = TopGO::read_go_terms($go_terms_file);
 my @sets = ('all');    # All genes
 my ( %gene_list_file, %dir );
 $gene_list_file{'all'} = File::Spec->catfile( $dir, 'gene_list.txt' );
-$dir{'all'} = $dir;
+$dir{'all'}            = $dir;
 TopGO::write_gene_list( $p_value_for, $gene_list_file{'all'} );
 
 # If fold changes are available and, if genes of interest, not all are up or
