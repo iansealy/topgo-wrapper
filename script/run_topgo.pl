@@ -141,14 +141,16 @@ my $run_up_and_down = $fold_change_field ? 1 : 0;
 if ($genes_of_interest_file) {
     @{ $sig_genes_for{'all'} } =
       grep { $p_value_for->{$_} == 1 } keys %{$p_value_for};
-    @{ $sig_genes_for{'up'} } =
-      grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} > 0 }
-      @{ $sig_genes_for{'all'} };
-    @{ $sig_genes_for{'down'} } =
-      grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} < 0 }
-      @{ $sig_genes_for{'all'} };
-    if ( !@{ $sig_genes_for{'up'} } || !@{ $sig_genes_for{'down'} } ) {
-        $run_up_and_down = 0;
+    if ($fold_change_field) {
+        @{ $sig_genes_for{'up'} } =
+          grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} > 0 }
+          @{ $sig_genes_for{'all'} };
+        @{ $sig_genes_for{'down'} } =
+          grep { $fold_change_for->{$_} ne q{-} && $fold_change_for->{$_} < 0 }
+          @{ $sig_genes_for{'all'} };
+        if ( !@{ $sig_genes_for{'up'} } || !@{ $sig_genes_for{'down'} } ) {
+            $run_up_and_down = 0;
+        }
     }
 }
 if ($run_up_and_down) {
