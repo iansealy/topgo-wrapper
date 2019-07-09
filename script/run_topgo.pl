@@ -112,6 +112,32 @@ if ($detct_file) {
         $go_terms_file =
           File::Spec->catfile( dirname(__FILE__), File::Spec->updir(), 'data',
             $filename );
+        if ( !-e $go_terms_file ) {
+            $go_terms_file =
+              File::Spec->catfile( '/usr/local/share/topgo-wrapper/data',
+                $filename );    # Location in container
+        }
+    }
+}
+
+# Look for GO terms file in default locations
+if (   $go_terms_file
+    && !-e $go_terms_file
+    && !File::Spec->file_name_is_absolute($go_terms_file) )
+{
+    my $new_go_terms_file =
+      File::Spec->catfile( dirname(__FILE__), File::Spec->updir(), 'data',
+        $go_terms_file );
+    if ( -e $new_go_terms_file ) {
+        $go_terms_file = $new_go_terms_file;
+    }
+    else {
+        $new_go_terms_file =
+          File::Spec->catfile( '/usr/local/share/topgo-wrapper/data',
+            $go_terms_file );    # Location in container
+        if ( -e $new_go_terms_file ) {
+            $go_terms_file = $new_go_terms_file;
+        }
     }
 }
 
