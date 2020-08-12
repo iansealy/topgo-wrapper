@@ -252,6 +252,7 @@ foreach my $domain ( sort keys %DOMAIN ) {
                 fold_changes => $fold_change_for,
                 names        => $name_for,
                 descriptions => $description_for,
+                test_type    => $genes_of_interest_file ? 'fisher' : 'ks',
             }
         );
         TopGO::filter_by_significance(

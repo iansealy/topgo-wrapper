@@ -321,6 +321,7 @@ sub run_topgo {
                     fold_changes => $fold_change_for
                     names        => $name_for,
                     descriptions => $description_for,
+                    test_type    => 'ks',
                 } );
   Purpose     : Add gene annotation to topGO results
   Returns     : undef
@@ -331,6 +332,7 @@ sub run_topgo {
                     fold_changes => Hashref (of fold changes keyed by gene ID),
                     names        => Hashref (of names keyed by gene ID),
                     descriptions => Hashref (of descriptions keyed by gene ID),
+                    test_type    => String (ks or fisher),
                 }
   Throws      : If input file is missing
                 If output file is missing
@@ -338,6 +340,7 @@ sub run_topgo {
                 If fold changes are missing
                 If names are missing
                 If descriptions are missing
+                If test type is missing
   Comments    : None
 
 =cut
@@ -351,11 +354,13 @@ sub annotate_with_genes {
     confess 'No fold changes specified' if !defined $arg_ref->{fold_changes};
     confess 'No names specified'        if !defined $arg_ref->{names};
     confess 'No descriptions specified' if !defined $arg_ref->{descriptions};
+    confess 'No test type specified'    if !defined $arg_ref->{test_type};
 
     my $p_value_for     = $arg_ref->{p_values};
     my $fold_change_for = $arg_ref->{fold_changes};
     my $name_for        = $arg_ref->{names};
     my $description_for = $arg_ref->{descriptions};
+    my $test_type       = $arg_ref->{test_type};
 
     open my $fh_in,  '<', $arg_ref->{input_file};
     open my $fh_out, '>', $arg_ref->{output_file};
@@ -366,7 +371,8 @@ sub annotate_with_genes {
     pop @header_fields;
 
     # Write output header
-    push @header_fields, 'Gene', 'p value', 'Fold change', 'Name',
+    push @header_fields, 'Gene', ( $test_type eq 'ks' ? 'p value' : 'Sig?' ),
+      'Fold change', 'Name',
       'Description';
     print {$fh_out} ( join "\t", @header_fields ), "\n";
 
