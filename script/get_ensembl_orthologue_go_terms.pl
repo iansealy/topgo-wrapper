@@ -42,6 +42,7 @@ my $ensembl_dbhost             = 'ensembldb.ensembl.org';
 my $ensembl_dbport;
 my $ensembl_dbuser = 'anonymous';
 my $ensembl_dbpass;
+my $slice_regexp;
 my ( $debug, $help, $man );
 
 # Get and check command line options
@@ -86,6 +87,9 @@ my $slices = $sa->fetch_all('toplevel');
 warn scalar @{$slices}, " slices\n" if $debug;
 
 foreach my $slice ( @{$slices} ) {
+    next
+      if defined $slice_regexp
+      && $slice->seq_region_name !~ m/$slice_regexp/xms;
     warn 'Slice: ', $slice->name, "\n" if $debug;
 
     # Get all genes
@@ -135,6 +139,7 @@ sub get_and_check_options {
         'ensembl_dbport=i'             => \$ensembl_dbport,
         'ensembl_dbuser=s'             => \$ensembl_dbuser,
         'ensembl_dbpass=s'             => \$ensembl_dbpass,
+        'slice_regexp=s'               => \$slice_regexp,
         'debug'                        => \$debug,
         'help'                         => \$help,
         'man'                          => \$man,
@@ -160,6 +165,7 @@ sub get_and_check_options {
         [--ensembl_dbport port]
         [--ensembl_dbuser username]
         [--ensembl_dbpass password]
+        [--slice_regexp regexp]
         [--debug]
         [--help]
         [--man]
@@ -191,6 +197,10 @@ Ensembl MySQL database username.
 =item B<--ensembl_dbpass PASSWORD>
 
 Ensembl MySQL database password.
+
+=item B<--slice_regexp REGEXP>
+
+Regular expression for limiting slices.
 
 =item B<--debug>
 
