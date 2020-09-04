@@ -366,7 +366,7 @@ sub annotate_with_genes {
     open my $fh_out, '>', $arg_ref->{output_file};
 
     # Get input header
-    my $header        = <$fh_in>;
+    my $header = <$fh_in>;
     my @header_fields = split /\t/xms, $header;
     pop @header_fields;
 

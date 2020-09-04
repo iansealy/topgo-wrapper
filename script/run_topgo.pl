@@ -99,7 +99,7 @@ if ($detct_file) {
     }
     close $fh;
     my @fields = split /\t/xms, $header;
-    my ($ens) = $fields[9] =~ m/\A (e\d+) \s/xms;    # e.g. e76 Ensembl Gene ID
+    my ($ens)  = $fields[9] =~ m/\A (e\d+) \s/xms;    # e.g. e76 Ensembl Gene ID
     foreach my $i ( 1 .. scalar @fields ) {
         if ( $fields[ $i - 1 ] =~ m/\A Log2 \s fold \s change/xms ) {
             $fold_change_field = $i;
