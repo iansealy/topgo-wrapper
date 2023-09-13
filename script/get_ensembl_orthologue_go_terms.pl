@@ -71,6 +71,11 @@ if ( !$goa ) {
 my $gma =
   Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Compara', 'GeneMember' );
 my $ha = Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Compara', 'Homology' );
+my $gdba =
+  Bio::EnsEMBL::Registry->get_adaptor( 'Multi', 'Compara', 'GenomeDB' );
+
+# Get GenomeDB
+my $gdb = $gdba->fetch_by_name_assembly($ensembl_species);
 
 # Ensure database connection isn't lost; Ensembl 64+ can do this more elegantly
 ## no critic (ProhibitMagicNumbers)
@@ -102,12 +107,19 @@ foreach my $slice ( @{$slices} ) {
         if ( $gma->can('fetch_by_stable_id') ) {
             $member = $gma->fetch_by_stable_id( $gene->stable_id );
         }
-        else {
+        elsif ( $gma->can('fetch_by_source_stable_id') ) {
             $member =
               $gma->fetch_by_source_stable_id( 'ENSEMBLGENE',
                 $gene->stable_id );
         }
-        next if !$member;
+        elsif ( $gma->can('fetch_by_stable_id_GenomeDB') ) {
+            $member =
+              $gma->fetch_by_stable_id_GenomeDB( $gene->stable_id, $gdb );
+        }
+        if ( !$member ) {
+            warn 'No member for ', $gene->stable_id, "\n";
+            next;
+        }
 
         my $homologies = $ha->fetch_all_by_Member( $member,
             -TARGET_SPECIES => $ensembl_orthologue_species );
